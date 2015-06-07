@@ -1,0 +1,16 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/darkBlue</item>
+        <item name="colorPrimaryDark">@color/darkDBlue</item>
+        <!--item name="colorAccent">@color/darkBlue</item-->
+        <item name="actionBarStyle">@style/ActionBar.Solid.Mine</item>
+    </style>
+
+    <style name="ActionBar.Solid.Mine"
+        parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+        <item name="background">@color/darkBlue</item>
+    </style>
+
+</resources>
