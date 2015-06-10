@@ -31,7 +31,6 @@ import app.com.example.rihanna.myspotifystreamer.adapters.SearchAdapter;
 import kaaes.spotify.webapi.android.*;
 import kaaes.spotify.webapi.android.models.*;
 
-//TODO see the askytask in this class and edit task to sincronize
 
 public class SearchActivity extends ActionBarActivity{
     private final String INPUT_STATUS="input";
@@ -40,12 +39,10 @@ public class SearchActivity extends ActionBarActivity{
     Pager<Artist> artistList;
     Context context;
     ListView mListView;
-    TextView noArtist;
     String query;
     SearchAdapter artistAdapter;
     ArtistSearch artists;
     Toast t;
-    boolean no_artist=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +51,6 @@ public class SearchActivity extends ActionBarActivity{
             setContentView(R.layout.activity_search);
             context = this;
             edited = (EditText) findViewById(R.id.search_text);
-            noArtist=(TextView)findViewById(R.id.noArtist);
             mListView = (ListView) findViewById(R.id.artist_list);
             artistAdapter = new SearchAdapter(context);
             mListView.setAdapter(artistAdapter);
@@ -63,8 +59,6 @@ public class SearchActivity extends ActionBarActivity{
             mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    view.getFocusables(position);/*highlight the selected list item */
-                    view.setSelected(true);
                     if (artistList != null) {
                         Artist art = artistList.items.get(position);
                         Intent intent = new Intent(context, TopTrackActivity.class);
@@ -82,14 +76,12 @@ public class SearchActivity extends ActionBarActivity{
 
                 @Override
                 public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                    //noArtist.setVisibility(View.GONE);
                     artistAdapter.clear();
-                    //get the new data from spotify
+                    mListView.clearChoices();//clear list view choices for not showing selected case new search
                     if (charSequence.length() > 0) {
                         artists = new ArtistSearch();
                         query = charSequence.toString();
                         artists.execute(query);
-
                         try {
                             artists.get(500, TimeUnit.MILLISECONDS);
                         } catch (InterruptedException e) {
@@ -99,13 +91,7 @@ public class SearchActivity extends ActionBarActivity{
                         } catch (TimeoutException e) {
                             e.printStackTrace();
                         }
-                      /*  if(no_artist){
-                            artists.cancel(true);
-                            artists = new ArtistSearch();
-                            artists.execute(query);
 
-                            t.show();
-                        }*/
                     }
                 }
 
@@ -172,19 +158,15 @@ public class SearchActivity extends ActionBarActivity{
 
         @Override
         protected void onPostExecute(Pager<Artist> result) {
-           // artistList=result;
             if(result != null && result.total>0){
                 t.cancel();
                 artistList=result;
-                no_artist=false;
                 artistAdapter.clear();
                 artistAdapter.addAll(result.items);
             }
           if(result == null || result.total == 0 ){
                 t.show();
-                no_artist=true;
                 artistAdapter.clear();
-              //  Toast.makeText(context,"Sorry no artist with this name. Refine search!",Toast.LENGTH_SHORT).show();
             }
 
         }
