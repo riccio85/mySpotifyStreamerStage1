@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,6 +23,10 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import app.com.example.rihanna.myspotifystreamer.adapters.SearchAdapter;
 import kaaes.spotify.webapi.android.*;
 import kaaes.spotify.webapi.android.models.*;
@@ -39,6 +44,8 @@ public class SearchActivity extends ActionBarActivity{
     String query;
     SearchAdapter artistAdapter;
     ArtistSearch artists;
+    Toast t;
+    boolean no_artist=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +58,8 @@ public class SearchActivity extends ActionBarActivity{
             mListView = (ListView) findViewById(R.id.artist_list);
             artistAdapter = new SearchAdapter(context);
             mListView.setAdapter(artistAdapter);
+            t=Toast.makeText(context, "Sorry no artist with this name. Refine search!", Toast.LENGTH_SHORT);
+            t.setGravity(Gravity.TOP|Gravity.CENTER, 0, 350);
             mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -80,16 +89,36 @@ public class SearchActivity extends ActionBarActivity{
                         artists = new ArtistSearch();
                         query = charSequence.toString();
                         artists.execute(query);
+
+                        try {
+                            artists.get(500, TimeUnit.MILLISECONDS);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        } catch (TimeoutException e) {
+                            e.printStackTrace();
+                        }
+                      /*  if(no_artist){
+                            artists.cancel(true);
+                            artists = new ArtistSearch();
+                            artists.execute(query);
+
+                            t.show();
+                        }*/
                     }
                 }
 
                 @Override
                 public void afterTextChanged(Editable editable) {
+
                 }
             });
         }else{
-            Toast.makeText(this,"You don't have internet conncetion Retry Later",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"You don't have internet connection Retry Later",Toast.LENGTH_SHORT).show();
         }
+
+
     }
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -143,14 +172,21 @@ public class SearchActivity extends ActionBarActivity{
 
         @Override
         protected void onPostExecute(Pager<Artist> result) {
-            artistList=result;
-            if(artistList != null){
+           // artistList=result;
+            if(result != null && result.total>0){
+                t.cancel();
+                artistList=result;
+                no_artist=false;
                 artistAdapter.clear();
                 artistAdapter.addAll(result.items);
             }
-            if(artistList == null){
+          if(result == null || result.total == 0 ){
+                t.show();
+                no_artist=true;
                 artistAdapter.clear();
+              //  Toast.makeText(context,"Sorry no artist with this name. Refine search!",Toast.LENGTH_SHORT).show();
             }
+
         }
 
    }

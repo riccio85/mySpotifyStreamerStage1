@@ -102,7 +102,7 @@ public class TopTrackFragment extends Fragment implements AdapterView.OnItemClic
             /*highlight the selected list item */
         view.getFocusables(position);
         view.setSelected(true);
-        Toast.makeText(getActivity(), "selected item "+position+1, Toast.LENGTH_SHORT).show();
+        Toast.makeText(getActivity(), "selected item "+(position+1), Toast.LENGTH_SHORT).show();
     }
 
     class TopTrackAsyncTask extends AsyncTask<String, Void, List<Track>> {
