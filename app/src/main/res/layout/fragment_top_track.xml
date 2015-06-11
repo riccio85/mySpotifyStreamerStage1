@@ -9,7 +9,7 @@
         android:layout_height="match_parent"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:background="@mipmap/ic_launcher"
+        android:background="@drawable/sad_emoticon"
         android:visibility="gone"
         />
 
