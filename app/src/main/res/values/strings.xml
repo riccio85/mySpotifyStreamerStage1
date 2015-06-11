@@ -3,13 +3,8 @@
 
     <string name="search">Search for an artist</string>
 
-    <string name="top_track">Top 10 Tracks</string>
-
-
-
-
-
-
+    <string name="top_track">Top Tracks</string>
+    <!--string name="top_track">Top 10 Tracks</string-->
 
 
     <string name="action_settings">Settings</string>
