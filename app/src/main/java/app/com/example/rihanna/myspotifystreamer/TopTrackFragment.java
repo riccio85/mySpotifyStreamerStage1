@@ -1,9 +1,11 @@
 package app.com.example.rihanna.myspotifystreamer;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,16 +31,18 @@ public class TopTrackFragment extends Fragment implements AdapterView.OnItemClic
     private final String SELECTED_KEY="mPosition";
     private final String LOCAL_LIST="myList";
     private final String MY_COUNTRY="IT";
+    private static final String SEARCH_TAG = "SEARCHTAG";
 
     int mPosition=ListView.INVALID_POSITION;
     String artistID;
     String artistName;
-    List<Track> topTracks;
-    List<TrackInfo> myTrackList=new ArrayList<TrackInfo>();
+    List<MyTracks> topTracks;
     Context context;
     ListView mListView;
     ImageView mImageView;
     TopTrackAdapter trackAdapter;
+    boolean twoPane;
+    private List<MyTracks> tracksList = new ArrayList<>();
 
     public TopTrackFragment()  {
     }
@@ -49,6 +53,7 @@ public class TopTrackFragment extends Fragment implements AdapterView.OnItemClic
 
             artistID = getArguments().getString("idArtist");
             artistName = getArguments().getString("nameArtist");
+            twoPane=getArguments().getBoolean("isTwoPane");
             context = getActivity();
             View rootView = inflater.inflate(R.layout.fragment_top_track, container, false);
             mImageView = (ImageView) rootView.findViewById(R.id.noTrack);
@@ -72,7 +77,7 @@ public class TopTrackFragment extends Fragment implements AdapterView.OnItemClic
         if (mPosition != ListView.INVALID_POSITION) {
             outState.putInt(SELECTED_KEY, mPosition);
         }
-        outState.putParcelableArrayList(LOCAL_LIST, (ArrayList<? extends android.os.Parcelable>) myTrackList);
+        outState.putParcelableArrayList(LOCAL_LIST, (ArrayList<? extends android.os.Parcelable>) tracksList);
      }
 
 
@@ -80,8 +85,8 @@ public class TopTrackFragment extends Fragment implements AdapterView.OnItemClic
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null) {
-               myTrackList=savedInstanceState.getParcelableArrayList(LOCAL_LIST);
-               trackAdapter.addAll(myTrackList);
+              tracksList=savedInstanceState.getParcelableArrayList(LOCAL_LIST);
+               trackAdapter.addAll(tracksList);
             // Restore last state for checked position
                if(savedInstanceState.getInt(SELECTED_KEY) != ListView.INVALID_POSITION){
                     mPosition = savedInstanceState.getInt(SELECTED_KEY);
@@ -91,8 +96,8 @@ public class TopTrackFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onResume() {
         super.onResume();
-        if(myTrackList!=null){
-            trackAdapter.addAll(myTrackList);
+        if(tracksList!=null){
+            trackAdapter.addAll(tracksList);
         }
     }
 
@@ -102,29 +107,66 @@ public class TopTrackFragment extends Fragment implements AdapterView.OnItemClic
             /*highlight the selected list item */
         view.getFocusables(position);
         view.setSelected(true);
-        Toast.makeText(getActivity(), "selected item "+(position+1), Toast.LENGTH_SHORT).show();
+
+        if(twoPane){
+            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+            Bundle args = new Bundle();
+            args.putParcelableArrayList("TrackList", (ArrayList<? extends android.os.Parcelable>) tracksList);
+            args.putString("artistName", artistName);
+            args.putInt("position", position);
+            PlayerFragment fragment = new PlayerFragment();
+            fragment.setArguments(args);
+                  fragmentManager.beginTransaction()
+                        .replace(R.id.containerPlay,fragment,SEARCH_TAG)
+                        .commit();
+
+        }else {
+            Intent intent = new Intent(getActivity(), PlayerActivity.class);
+            intent.putParcelableArrayListExtra("TrackList", (ArrayList<? extends android.os.Parcelable>) tracksList);
+            intent.putExtra("artistName", artistName);
+            intent.putExtra("position", position);
+            startActivity(intent);
+        }
+
     }
 
-    class TopTrackAsyncTask extends AsyncTask<String, Void, List<Track>> {
+    class TopTrackAsyncTask extends AsyncTask<String, Void, List<MyTracks>> {
         @Override
-        protected  List<Track> doInBackground(String... strings) {
+        protected  List<MyTracks> doInBackground(String... strings) {
             SpotifyApi api = new SpotifyApi();
             SpotifyService spotify = api.getService();
             Map<String, Object> options = new HashMap<>();
             options.put(spotify.COUNTRY, MY_COUNTRY);
             Tracks tracks = spotify.getArtistTopTrack(strings[0], options);
-            return tracks.tracks;
+            if (tracks.tracks != null && tracks.tracks.size() > 0) {
+                for (Track track : tracks.tracks) {
+                    List<Image> imageList = track.album.images;
+                    String bigImgUrl = "";
+                    String smallImgUrl = "";
+                    if (imageList != null && imageList.size() != 0) {
+                        bigImgUrl = "";
+                        for (Image image : imageList) {
+                            if (image.width < 700 && bigImgUrl.length() == 0) {
+                                bigImgUrl = image.url;
+                            }
+                        }
+                        smallImgUrl = imageList.get(imageList.size() - 1).url;
+                    }
+                    tracksList.add(new MyTracks(track.name, track.album.name, smallImgUrl, bigImgUrl,
+                            track.preview_url, String.valueOf(track.duration_ms)));
+                }
+            }
+
+            return tracksList;
         }
 
         @Override
-        protected void onPostExecute(List<Track> result) {
+        protected void onPostExecute(List<MyTracks> result) {
             topTracks=result;
             if(result != null) {
-                /*Saving in myTrackList the parcelable local arrayList */
-                TrackInfo mine = new TrackInfo();
-                myTrackList = mine.filterTrackList(artistName,result);
+                tracksList = result;
                 trackAdapter.clear();
-                trackAdapter.addAll(myTrackList);
+                trackAdapter.addAll(tracksList);
             }
             if(result.size() == 0){
                trackAdapter.clear();

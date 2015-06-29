@@ -127,7 +127,6 @@ public class TrackInfo  implements Parcelable {
         }
     }
 
-    @SuppressWarnings("unused")
     public static final Parcelable.Creator<TrackInfo> CREATOR = new Parcelable.Creator<TrackInfo>() {
         @Override
         public TrackInfo createFromParcel(Parcel in) {

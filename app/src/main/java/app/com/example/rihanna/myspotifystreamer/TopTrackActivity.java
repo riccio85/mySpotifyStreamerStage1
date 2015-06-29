@@ -34,6 +34,9 @@ public class TopTrackActivity extends ActionBarActivity {
     String artistID;
     String artistName;
     TopTrackFragment fragment=new TopTrackFragment();
+    boolean twoPane;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,18 +51,26 @@ public class TopTrackActivity extends ActionBarActivity {
 
         setContentView(R.layout.activity_top_track);
 
-       // fragment=new TopTrackFragment();
-        Bundle bundle=new Bundle();
-        bundle.putString("idArtist",artistID);
-        bundle.putString("nameArtist",artistName);
-
-        if (savedInstanceState == null) {
-            fragment=new TopTrackFragment();
-            fragment.setArguments(bundle);
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container,fragment)
-                    .commit();
+        if (findViewById(R.id.containerPlay) != null) {
+            twoPane = true;
+        }  else {
+        twoPane = false;
         }
+
+            fragment=new TopTrackFragment();
+            Bundle bundle=new Bundle();
+            bundle.putString("idArtist",artistID);
+            bundle.putString("nameArtist",artistName);
+            bundle.putBoolean("isTwoPane",twoPane);
+
+            if (savedInstanceState == null) {
+                fragment=new TopTrackFragment();
+                fragment.setArguments(bundle);
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.container,fragment)
+                        .commit();
+            }
+
 
         //Restore the fragment's instance
         if (savedInstanceState != null){

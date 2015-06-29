@@ -43,11 +43,11 @@ public class SearchActivity extends ActionBarActivity{
     SearchAdapter artistAdapter;
     ArtistSearch artists;
     Toast t;
+    boolean twoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
             setContentView(R.layout.activity_search);
             context = this;
             edited = (EditText) findViewById(R.id.search_text);
